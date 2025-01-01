@@ -1,69 +1,104 @@
 import random
-import tkinter as tk
-from agentFactory import *
+import pygame
+from game import Game
+from config import *
+import numpy as np
+
 
 class Window:
 
-    WINDOW_W = 1200
-    WINDOW_H = 800
-
-    FIELD_W = 700
-    FIELD_H = 500
-
-    def __init__(self, root):
+    def __init__(self):
         """
         Initializes the application window.
 
         :param root: The root window of the tkinter application.
         """
-        self.root = root
-        self.root.title("My Application")
-        self.root.geometry(str(self.WINDOW_W) + "x" + str(self.WINDOW_H))  # Width x Height
+        pygame.init()
 
-        # Add a label
-        self.label = tk.Label(root, text="Welcome to My Application!", font=("Arial", 14))
-        self.label.pack(pady=20)
 
-        # Add a drawing canvas
-        self.canvas = tk.Canvas(root, width=self.FIELD_W, height=self.FIELD_H, bg="white")
-        self.canvas.pack(pady=20)
+        self.screen = pygame.display.set_mode((WINDOW_W, WINDOW_H))
+        self.clock = pygame.time.Clock()
 
-        # Add a button
-        self.button = tk.Button(root, text="Click Me", command=self.on_button_click)
-        self.button.pack(pady=10)
+        self.game = Game()
 
-        self.factory = AgentFactory()
-        self.render_2D()
+        # Button callback
+        def add_agent():
+            self.game.agent_factory.create_agent(np.random.uniform(0, FIELD_H, size=2))
 
-    def on_button_click(self):
-        """
-        Handles the button click event.
-        Creates an agent
-        """
-        x = random.randint(10, self.FIELD_W - 10) # Within the field boundaries
-        y = random.randint(10, self.FIELD_H - 10)
-        self.factory.create_agent([x, y])
-        self.label.config(text="Button Clicked!")
+        # Button callback
+        def add_many_agents():
+            for i in range(10):
+                self.game.agent_factory.create_agent(np.random.uniform(0, FIELD_H, size=2))
 
-    def render_agents_2D(self):
-        size = 10    # Initial size of agent
-        color = "red"  # Color of the agents
-        for agent in self.factory.get_agent_positions_2D():
-            x = agent[0]    # X-coordinate
-            y = agent[1]    # Y-coordinate
-            self.canvas.create_oval(
-                x,
-                y,
-                x + size,
-                y + size,
-                fill=color
-            )
-        print("Rendering agents...")
 
-    def render_2D(self):
-        """
-        The main rendering loop, called approximately 60 times per second.
-        """
-        self.factory.move_agents_2D()
-        self.render_agents_2D()
-        self.root.after(16, self.render_2D)  # Schedule next frame (~60 FPS)
+        add_agent_button = AddAgentButton(
+            WINDOW_W // 2 - 300,       # X position
+            FIELD_H + 20,                   # Y position
+            200,                            # Width
+            50,                             # Height
+            "Add Boid", add_agent
+        )
+        
+        add_agents_button = AddAgentButton(
+            WINDOW_W // 2 + 100,       # X position
+            FIELD_H + 20,                   # Y position
+            200,                            # Width
+            50,                             # Height
+            "Add 10 Boids", add_many_agents
+        )
+
+        # Main game loop
+        running = True
+        while running:
+            # Handle events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                add_agent_button.handle_event(event)
+                add_agents_button.handle_event(event)
+
+            self.game.update()
+
+            # Render
+            self.render()
+            add_agent_button.render(self.screen)
+            add_agents_button.render(self.screen)
+            
+            pygame.display.flip()
+
+            # Limit rendering to a reasonable FPS
+            self.clock.tick(30)
+
+        pygame.quit()
+
+
+    def render(self):
+        self.screen.fill(WHITE)
+
+        # Draw the game field
+        pygame.draw.rect(self.screen, GREEN, (FIELD_OFFSET_X, FIELD_OFFSET_Y, FIELD_W, FIELD_H))
+
+        self.game.render(self.screen)
+
+
+
+# Button class
+class AddAgentButton:
+    def __init__(self, x, y, width, height, text, callback):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.callback = callback
+        self.color = GRAY
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.callback()
+
+    def render(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect)
+        font = pygame.font.Font(None, 36)
+        text_surface = font.render(self.text, True, BLACK)
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)
+
