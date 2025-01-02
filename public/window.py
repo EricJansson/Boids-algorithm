@@ -20,7 +20,8 @@ class Window:
             "alignment": True,
             "cohesion": True,
             "randomness": True,
-            "wander_force": True
+            "wander_force": True,
+            "phase_through": True
         }
 
         self.screen = pygame.display.set_mode((WINDOW_W, WINDOW_H))
@@ -55,6 +56,11 @@ class Window:
         def toggle_wander_force():
             self.settings["wander_force"] = not self.settings["wander_force"]
             return self.settings["wander_force"]
+        
+        def toggle_phase_through():
+            self.settings["phase_through"] = not self.settings["phase_through"]
+            return self.settings["phase_through"]
+        
 
         self.all_buttons = []
 
@@ -86,7 +92,7 @@ class Window:
         )
         
         toggle_button_alignment = ToggleButton(
-            WINDOW_W // 2 - 320, 
+            WINDOW_W // 2 - 350, 
             FIELD_H + 85, 
             200,
             50,
@@ -96,7 +102,7 @@ class Window:
         )
 
         toggle_button_cohesion = ToggleButton(
-            WINDOW_W // 2 + 120, 
+            WINDOW_W // 2 + 150, 
             FIELD_H + 85,
             200,
             50,
@@ -106,7 +112,7 @@ class Window:
         )
 
         toggle_button_randomness = ToggleButton(
-            WINDOW_W // 2 - 230, 
+            WINDOW_W // 2 - 110, 
             FIELD_H + 150, 
             220,
             50,
@@ -116,13 +122,23 @@ class Window:
         )
 
         toggle_button_wander_force = ToggleButton(
-            WINDOW_W // 2 + 30, 
+            WINDOW_W // 2 - 360, 
             FIELD_H + 150, 
             220,
             50,
             toggle_wander_force,
             text_on="Wander force ON", 
             text_off="Wander force OFF"
+        )
+        
+        toggle_button_phase_through = ToggleButton(
+            WINDOW_W // 2 + 140, 
+            FIELD_H + 150, 
+            220,
+            50,
+            toggle_phase_through,
+            text_on="Avoid walls ON", 
+            text_off="Avoid walls OFF"
         )
         
         self.all_buttons.append(add_agent_button)
@@ -132,6 +148,7 @@ class Window:
         self.all_buttons.append(toggle_button_cohesion)
         self.all_buttons.append(toggle_button_randomness)
         self.all_buttons.append(toggle_button_wander_force)
+        self.all_buttons.append(toggle_button_phase_through)
 
         # Main game loop
         running = True
@@ -160,7 +177,7 @@ class Window:
 
 
     def render(self):
-        self.screen.fill(WHITE)
+        self.screen.fill(BLACK)
 
         # Draw the game field
         pygame.draw.rect(self.screen, DARK_GRAY, (FIELD_OFFSET_X, FIELD_OFFSET_Y, FIELD_W, FIELD_H))

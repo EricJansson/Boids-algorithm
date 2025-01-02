@@ -11,7 +11,7 @@ class AgentFactory:
         for agent in self.agents:
             agent.apply_behaviors(self.agents, settings)  # Apply separation, alignment, cohesion
             agent.update()                      # Update position and velocity
-            agent.edges(bounds, phase_through=True)                 # Don't cross field boundaries
+            agent.edges(bounds, phase_through=settings["phase_through"])                 # Don't cross field boundaries
 
     def render(self, screen):
         for agent in self.agents:
