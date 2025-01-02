@@ -6,11 +6,11 @@ class Game:
     def __init__(self): 
         self.agent_factory = AgentFactory()
 
-    def update(self):
+    def update(self, settings):
         """
         Update all game entities.
         """
-        self.agent_factory.update()
+        self.agent_factory.update(settings)
 
     def render(self, screen):
         """

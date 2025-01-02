@@ -15,24 +15,51 @@ class Window:
         """
         pygame.init()
 
+        self.settings = {
+            "separation": True,
+            "alignment": True,
+            "cohesion": True,
+            "randomness": True,
+            "wander_force": True
+        }
 
         self.screen = pygame.display.set_mode((WINDOW_W, WINDOW_H))
         self.clock = pygame.time.Clock()
 
         self.game = Game()
 
-        # Button callback
+        # Callback Buttons
         def add_agent():
             self.game.agent_factory.create_agent(np.random.uniform(0, FIELD_H, size=2))
 
-        # Button callback
         def add_many_agents():
-            for i in range(10):
+            for i in range(35):
                 self.game.agent_factory.create_agent(np.random.uniform(0, FIELD_H, size=2))
 
+        def toggle_separation():
+            self.settings["separation"] = not self.settings["separation"]
+            return self.settings["separation"]
+
+        def toggle_alignment():
+            self.settings["alignment"] = not self.settings["alignment"]
+            return self.settings["alignment"]
+
+        def toggle_cohesion():
+            self.settings["cohesion"] = not self.settings["cohesion"]
+            return self.settings["cohesion"]
+
+        def toggle_randomness():
+            self.settings["randomness"] = not self.settings["randomness"]
+            return self.settings["randomness"]
+
+        def toggle_wander_force():
+            self.settings["wander_force"] = not self.settings["wander_force"]
+            return self.settings["wander_force"]
+
+        self.all_buttons = []
 
         add_agent_button = AddAgentButton(
-            WINDOW_W // 2 - 300,       # X position
+            WINDOW_W // 2 - 220,            # X position
             FIELD_H + 20,                   # Y position
             200,                            # Width
             50,                             # Height
@@ -40,12 +67,71 @@ class Window:
         )
         
         add_agents_button = AddAgentButton(
-            WINDOW_W // 2 + 100,       # X position
+            WINDOW_W // 2 + 20,             # X position
             FIELD_H + 20,                   # Y position
             200,                            # Width
             50,                             # Height
-            "Add 10 Boids", add_many_agents
+            "Add 35 Boids", add_many_agents
         )
+
+
+        toggle_button_separation = ToggleButton(
+            WINDOW_W // 2 - 100, 
+            FIELD_H + 85, 
+            200,
+            50,
+            toggle_separation,
+            text_on="Separation ON", 
+            text_off="Separation OFF"
+        )
+        
+        toggle_button_alignment = ToggleButton(
+            WINDOW_W // 2 - 320, 
+            FIELD_H + 85, 
+            200,
+            50,
+            toggle_alignment,
+            text_on="Alignment ON", 
+            text_off="Alignment OFF"
+        )
+
+        toggle_button_cohesion = ToggleButton(
+            WINDOW_W // 2 + 120, 
+            FIELD_H + 85,
+            200,
+            50,
+            toggle_cohesion,
+            text_on="Cohesion ON", 
+            text_off="Cohesion OFF"
+        )
+
+        toggle_button_randomness = ToggleButton(
+            WINDOW_W // 2 - 230, 
+            FIELD_H + 150, 
+            220,
+            50,
+            toggle_randomness,
+            text_on="Randomness ON", 
+            text_off="Randomness OFF"
+        )
+
+        toggle_button_wander_force = ToggleButton(
+            WINDOW_W // 2 + 30, 
+            FIELD_H + 150, 
+            220,
+            50,
+            toggle_wander_force,
+            text_on="Wander force ON", 
+            text_off="Wander force OFF"
+        )
+        
+        self.all_buttons.append(add_agent_button)
+        self.all_buttons.append(add_agents_button)
+        self.all_buttons.append(toggle_button_separation)
+        self.all_buttons.append(toggle_button_alignment)
+        self.all_buttons.append(toggle_button_cohesion)
+        self.all_buttons.append(toggle_button_randomness)
+        self.all_buttons.append(toggle_button_wander_force)
 
         # Main game loop
         running = True
@@ -54,15 +140,16 @@ class Window:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                add_agent_button.handle_event(event)
-                add_agents_button.handle_event(event)
+                for btn in self.all_buttons:
+                    btn.handle_event(event)
 
-            self.game.update()
+            self.game.update(self.settings)
 
             # Render
             self.render()
-            add_agent_button.render(self.screen)
-            add_agents_button.render(self.screen)
+
+            for btn in self.all_buttons:
+                btn.render(self.screen)
             
             pygame.display.flip()
 
@@ -76,7 +163,7 @@ class Window:
         self.screen.fill(WHITE)
 
         # Draw the game field
-        pygame.draw.rect(self.screen, GREEN, (FIELD_OFFSET_X, FIELD_OFFSET_Y, FIELD_W, FIELD_H))
+        pygame.draw.rect(self.screen, DARK_GRAY, (FIELD_OFFSET_X, FIELD_OFFSET_Y, FIELD_W, FIELD_H))
 
         self.game.render(self.screen)
 
@@ -102,3 +189,48 @@ class AddAgentButton:
         text_rect = text_surface.get_rect(center=self.rect.center)
         screen.blit(text_surface, text_rect)
 
+
+class ToggleButton:
+    def __init__(self, x, y, width, height, callback, text_on="ON", text_off="OFF"):
+        """
+        Initialize the toggle button.
+        :param x: X position of the button.
+        :param y: Y position of the button.
+        :param width: Width of the button.
+        :param height: Height of the button.
+        :param callback: Callback function to handle button functionality.
+        :param text_on: Text to display when the state is True.
+        :param text_off: Text to display when the state is False.
+        """
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text_on = text_on
+        self.text_off = text_off
+        self.callback = callback
+        self.state = True
+        self.color_on = (0, 200, 0)  # Green when True
+        self.color_off = (200, 0, 0)  # Red when False
+        self.font = pygame.font.Font(None, 36)
+
+    def handle_event(self, event):
+        """
+        Handle mouse click events to toggle the button state.
+        :param event: Pygame event.
+        """
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.state = self.callback()
+
+    def render(self, screen):
+        """
+        Render the button on the screen.
+        :param screen: The Pygame screen to draw on.
+        """
+        # Choose color based on state
+        color = self.color_on if self.state else self.color_off
+        pygame.draw.rect(screen, color, self.rect)
+
+        # Render text
+        text = self.text_on if self.state else self.text_off
+        text_surface = self.font.render(text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)

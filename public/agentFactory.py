@@ -1,16 +1,17 @@
-from agent import *
+from agent import Agent
+from config import *
 
 class AgentFactory:
     def __init__(self):
         self.agent_iterator = 0
         self.agents = []
 
-    def update(self):
+    def update(self, settings):
         bounds = (FIELD_W, FIELD_H)
         for agent in self.agents:
-            agent.apply_behaviors(self.agents)  # Apply separation, alignment, cohesion
+            agent.apply_behaviors(self.agents, settings)  # Apply separation, alignment, cohesion
             agent.update()                      # Update position and velocity
-            agent.edges(bounds)                 # Don't cross field boundaries
+            agent.edges(bounds, phase_through=True)                 # Don't cross field boundaries
 
     def render(self, screen):
         for agent in self.agents:

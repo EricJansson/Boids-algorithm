@@ -8,8 +8,8 @@ class Agent:
     """
     The unit that will be moving around the field
     """
-    color = BLUE # Blue
-    detection_color = BLUE # Blue
+    color = LIGHT_GRAY # Blue
+    detection_color = color
     draw_perception_radius = False
     x_offset = (WINDOW_W - FIELD_W) // 2
 
@@ -83,7 +83,7 @@ class Agent:
             self.color = RED
             center = (self.position[0] + self.x_offset, self.position[1])  # Apply x_offset to x-coordinate
             pygame.draw.circle(screen, self.detection_color, (int(center[0]), int(center[1])), PERCEPTION_RADIUS, 2)
-            self.detection_color = BLUE # Reset color
+            self.detection_color = self.color # Reset color
 
 
     def update(self):
@@ -107,13 +107,22 @@ class Agent:
         """
         self.acceleration += force
 
-    def edges(self, bounds, wall_avoid_distance=50, wall_avoid_force=AGENT_MAX_SPEED*0.08):
+    def edges(self, bounds, wall_avoid_distance=50, wall_avoid_force=AGENT_MAX_SPEED*0.08, phase_through=False):
         """
         Avoid walls by steering the boid away from them.
         :param bounds: Tuple representing the (width, height) of the field.
         :param wall_avoid_distance: Distance from the wall within which avoidance is applied.
         :param wall_avoid_force: Magnitude of the force to steer away from the wall.
+        :param phase_through: Should walls be ignored and let the agent phase through.
         """
+        if phase_through:
+            for i in range(len(bounds)):
+                if self.position[i] > bounds[i]:
+                    self.position[i] = 0
+                elif self.position[i] < 0:
+                    self.position[i] = bounds[i]
+            return
+
         for i in range(len(bounds)):
             # Check if the boid is near the left wall
             if self.position[i] < wall_avoid_distance:
@@ -226,7 +235,7 @@ class Agent:
             return direction
         return np.zeros_like(self.position)
 
-    def apply_behaviors(self, agents):
+    def apply_behaviors(self, agents, settings):
         """
         Apply the three main boid behaviors (separation, alignment, cohesion).
         :param agents: List of other agents (boids).
@@ -239,8 +248,13 @@ class Agent:
 
 
         # Apply the combined forces
-        self.apply_force(separation)
-        self.apply_force(alignment)
-        self.apply_force(cohesion)
-        self.apply_force(randomness)
-        self.apply_force(wander_force)
+        if settings["separation"]:
+            self.apply_force(separation)
+        if settings["alignment"]:
+            self.apply_force(alignment)
+        if settings["cohesion"]:
+            self.apply_force(cohesion)
+        if settings["randomness"]:
+            self.apply_force(randomness)
+        if settings["wander_force"]:
+            self.apply_force(wander_force)
