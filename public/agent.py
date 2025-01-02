@@ -135,14 +135,6 @@ class Agent:
                 force = np.zeros_like(self.position)
                 force[i] = -wall_avoid_force
                 self.apply_force(force)
-
-    def random_force(self, magnitude=0.1):
-        """
-        Generate a small random steering force.
-        :param magnitude: Maximum magnitude of the random force.
-        :return: A random force vector.
-        """
-        return np.random.uniform(-magnitude, magnitude, size=self.position.shape)
     
     def wander(self, magnitude=0.5):
         """
@@ -154,7 +146,7 @@ class Agent:
         wander_vector = np.array([np.cos(wander_angle), np.sin(wander_angle)])
         return wander_vector * magnitude
 
-    def separate(self, agents, perception_radius=PERCEPTION_RADIUS):
+    def separate(self, agents, perception_radius=PERCEPTION_RADIUS*0.5):
         """
         Steer to avoid crowding neighbors.
         :param agents: List of other agents (boids).
@@ -243,7 +235,6 @@ class Agent:
         separation = self.separate(agents) * SEPARATION_WEIGHT  # Weight for separation
         alignment = self.align(agents) * ALIGNMENT_WEIGHT       # Weight for alignment
         cohesion = self.cohere(agents) * COHESION_WEIGHT        # Weight for cohesion
-        randomness = self.random_force(0.1)  # Add random movement
         wander_force = self.wander(0.1)     # Add wandering behavior
 
 
@@ -254,7 +245,5 @@ class Agent:
             self.apply_force(alignment)
         if settings["cohesion"]:
             self.apply_force(cohesion)
-        if settings["randomness"]:
-            self.apply_force(randomness)
         if settings["wander_force"]:
             self.apply_force(wander_force)

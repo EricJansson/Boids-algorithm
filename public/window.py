@@ -111,24 +111,14 @@ class Window:
             text_off="Cohesion OFF"
         )
 
-        toggle_button_randomness = ToggleButton(
-            WINDOW_W // 2 - 110, 
-            FIELD_H + 150, 
-            220,
-            50,
-            toggle_randomness,
-            text_on="Randomness ON", 
-            text_off="Randomness OFF"
-        )
-
         toggle_button_wander_force = ToggleButton(
             WINDOW_W // 2 - 360, 
             FIELD_H + 150, 
             220,
             50,
             toggle_wander_force,
-            text_on="Wander force ON", 
-            text_off="Wander force OFF"
+            text_on="Wander ON", 
+            text_off="Wander OFF"
         )
         
         toggle_button_phase_through = ToggleButton(
@@ -137,8 +127,8 @@ class Window:
             220,
             50,
             toggle_phase_through,
-            text_on="Avoid walls ON", 
-            text_off="Avoid walls OFF"
+            text_on="Don't Avoid walls", 
+            text_off="Avoid walls"
         )
         
         self.all_buttons.append(add_agent_button)
@@ -146,7 +136,6 @@ class Window:
         self.all_buttons.append(toggle_button_separation)
         self.all_buttons.append(toggle_button_alignment)
         self.all_buttons.append(toggle_button_cohesion)
-        self.all_buttons.append(toggle_button_randomness)
         self.all_buttons.append(toggle_button_wander_force)
         self.all_buttons.append(toggle_button_phase_through)
 
